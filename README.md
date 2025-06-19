@@ -1,4 +1,4 @@
-# product-recommender-system
+# AI Kickstart - Product Recommender System 
 
 Welcome to the Product Recommender System Kickstart!
 Use this to quickly get a recommendation engine with user-item relationships up and running in your environment.
@@ -6,7 +6,7 @@ Use this to quickly get a recommendation engine with user-item relationships up 
 To see how it's done, jump straight to [installation](#install). 
 
 ## Description 
-The Product Recommender System Kickstart is a template for deploying a highly scalable user-item recommendation system tailored to user preferences and demographics.
+The Product Recommender System Kickstart enables the rapid establishment of a scalable and personalized product recommendation service.
 
 The system recommends items to users based on their previous interactions with products and the behavior of similar users.
 
@@ -42,12 +42,34 @@ To find products in the application you can do a:
 Components of Recommender System
 <!--  TODO image of recommendation system infernece design -->
 
+### Data Proprocessing
+<img src="figures/Data_preprocessing_pipeline.drawio.png" alt="Inference" width="80%">
+
+
 ### Infernece
-<img src="figures/inference.png" alt="Inference" width="80%">
+#### Exiting user case:
+* Sending a get request from the EDB vectorDB to get the embedding of the existing user.
+* Perform a similarity search on the item vectorDB to get the top k similar items.
+
+#### New user case:
+* The new users will be embedded into a vector representation.
+* The user vector will do a similarity search from the EDB PGVector to get the top k suggested items
+
+
+
+<img src="figures/Inference.png" alt="Inference" width="80%">
 
 ### Training & Batch scoring
+#### Training
+* Feast takes the Raw data (item table, user table, interaction table) and stores the items, users, and interactions as Feature Views.
+* Using the Two-Tower architecture technique, we train the item and user encoders based on the existing user-item interactions.
+
 <img src="figures/training_and_batch_scoring.png" alt="Training & Batch scoring" width="80%">
 
+#### Batch scoring
+* After completing the training of the Encoders, embed all items and users, then push them in the PGVector database as embedding.
+* Because we use batch scoring, we calculates for each user the top k recommended items using the item embeddings 
+* Pushes this top k items for each user to the online store Feature Store.
 ## References 
 
 *Section required. Include links to supporting information, documentation, or
@@ -65,12 +87,11 @@ Depend on the scale and speed required, for small amount of users have minimus o
 
 ### Required software 
 
-- Red Hat Authorino Operator (stable update channel, version 1.2.1 or later)
-- Red Hat OpenShift Serverless Operator
-- Red Hat OpenShift Service Mesh Operator
 * Red Hat OpenShift.
 * Red Hat OpenShift AI version 2.2 and above.
-* Dependencies for Single-model server:
+* Red Hat Authorino Operator (stable update channel, version 1.2.1 or later)
+* Red Hat OpenShift Serverless Operator
+* Red Hat OpenShift Service Mesh Operator
 
 ### Required permissions
 
@@ -82,36 +103,12 @@ Depend on the scale and speed required, for small amount of users have minimus o
 kickstart. If screenshots are included, remember to put them in the
 `assets/images` folder.*
 
-## Postgres DB
-
-1. Build and run the compose file
-
-   ```bash
-    podman compose up --build
-   ```
-
-## Backend
-
-1. Create venv & install the dependencies
-
-   ```bash
-    python3.10 -m venv venv
-    source venv/bin/activate
-    pip3 install -r backend/requirements.txt
-   ```
-
-2. Start the backend server (use `local.env` for local development)
-
-   ```bash
-   ./venv/bin/uvicorn backend.main:app --reload --port 8080 --env-file env/local.env
-   ```
-
 ## Run Tests
 
 1. Install dev dependancies
 
    ```bash
-    pip3 install -r backend/requirements-dev.txt
+    pip3 install -r backend/pyproject-dev.toml
    ```
 
 
