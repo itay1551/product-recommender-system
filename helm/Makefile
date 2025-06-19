@@ -12,6 +12,8 @@ MAKEFLAGS += --no-print-directory
 POSTGRES_USER ?= postgres
 POSTGRES_PASSWORD ?= recsys_password
 POSTGRES_DBNAME ?= recsys
+MINIO_USER ?= minio_model_registery_user
+MINIO_PASSWORD ?= minio_model_registery_password
 HF_TOKEN ?= $(shell bash -c 'read -r -p "Enter Hugging Face Token: " HF_TOKEN; echo $$HF_TOKEN')
 HELM_CHART := product-recommender-system
 TOLERATIONS_TEMPLATE=[{"key":"$(1)","effect":"NoSchedule","operator":"Exists"}]
@@ -29,6 +31,10 @@ helm_llm_service_args = \
     $(if $(LLM_TOLERATION),--set-json global.models.$(LLM).tolerations='$(call TOLERATIONS_TEMPLATE,$(LLM_TOLERATION))',) \
     $(if $(SAFETY_TOLERATION),--set-json global.models.$(SAFETY).tolerations='$(call TOLERATIONS_TEMPLATE,$(SAFETY_TOLERATION))',) \
     $(if $(RAW_DEPLOYMENT),--set llm-service.rawDeploymentMode=$(RAW_DEPLOYMENT),)
+
+helm_minio_args = \
+    --set minio.secret.user=$(MINIO_USER) \
+    --set minio.secret.password=$(MINIO_PASSWORD)
 
 helm_llama_stack_args = \
     $(if $(LLM),--set global.models.$(LLM).enabled=true,) \
@@ -76,11 +82,13 @@ list-models: depend
 install: namespace depend
 	@$(eval PGVECTOR_ARGS := $(call helm_pgvector_args))
 	@$(eval LLM_SERVICE_ARGS := $(call helm_llm_service_args))
+	@$(eval MINIO_ARGS := $(call helm_minio_args))
 	@$(eval LLAMA_STACK_ARGS := $(call helm_llama_stack_args))
 	@echo "Installing $(HELM_CHART) helm chart"
 	@helm -n $(NAMESPACE) upgrade --install $(HELM_CHART) $(HELM_CHART) -n $(NAMESPACE) \
 		$(PGVECTOR_ARGS) \
 		$(LLM_SERVICE_ARGS) \
+		$(MINIO_ARGS) \
 		$(LLAMA_STACK_ARGS) \
 		$(EXTRA_HELM_ARGS) --set strimzi-kafka-operator.createGlobalResources=false
 	@echo "Waiting for model services and llamastack to deploy. It may take around 10-15 minutes depending on the size of the model..."

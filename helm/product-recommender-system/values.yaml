@@ -172,3 +172,10 @@ kafka:
 configure-pipeline:
   notebook:
     create: false
+
+minio:
+  secret:
+    user: minio_model_registery_user
+    password: minio_model_registery_password
+    host: minio
+    port: "9000"

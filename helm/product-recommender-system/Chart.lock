@@ -8,5 +8,8 @@ dependencies:
 - name: configure-pipeline
   repository: https://rh-ai-kickstart.github.io/ai-architecture-charts
   version: 0.1.0
-digest: sha256:b157b740510ef22e744b529efbf465236a7778248d3bcb88ca1ef27760e944c3
-generated: "2025-05-28T11:42:07.908281618-04:00"
+- name: minio
+  repository: https://rh-ai-kickstart.github.io/ai-architecture-charts
+  version: 0.1.0
+digest: sha256:5a46ff2143f27a5531a4f824bf9986ff9c44f1cb648520a0825996d265e05e5e
+generated: "2025-06-19T17:41:34.084587077+03:00"
