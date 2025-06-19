@@ -21,7 +21,6 @@ kafka_service = None #KafkaService()
 Ensure you have the following installed on your system:
 
 *   **Podman**: Container runtime for running the application and its dependencies
-*   **Python 3.12+**: Required for building the container image
 ### Deployment with Podman
 
 1. **Clone the repository**:
