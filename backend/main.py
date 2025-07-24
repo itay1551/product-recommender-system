@@ -1,7 +1,12 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import numpy as np
 from routes import auth, products, recommendations, cart, orders, wishlist, feedback, health, interactions, preferences
+from fastapi.responses import Response
+from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
+import httpx
+import sys
 # from routes import test
 
 app = FastAPI()
@@ -51,6 +56,26 @@ mock_products = [
 user_views = {
     1: [mock_products[0], mock_products[2]]
 }
+
+
+class SPAStaticFiles(StaticFiles):
+    async def get_response(self, path: str, scope):
+        if len(sys.argv) > 1 and sys.argv[1] == "dev":
+            # We are in Dev mode, proxy to the React dev server
+            async with httpx.AsyncClient() as client:
+                response = await client.get(f"http://localhost:9000/{path}")
+            return Response(response.text, status_code=response.status_code)
+        else:
+            try:
+                return await super().get_response(path, scope)
+            except (HTTPException, StarletteHTTPException) as ex:
+                if ex.status_code == 404:
+                    return await super().get_response("index.html", scope)
+                else:
+                    raise ex
+
+if __name__ == "__main__":
+    app.mount("/", SPAStaticFiles(directory="backend/public", html=True), name="spa-static-files")
 
 
 '''
